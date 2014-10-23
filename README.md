@@ -8,11 +8,11 @@ This is a PHP Guzzle3 plugin for dealing with CB OAuth2.
 ```php
 use CareerBuilder\OAuth2\OAuth2Plugin;
 use CareerBuilder\OAuth2\TokenFactory;
+use CareerBuilder\OAuth2\NullTokenStorage;
 
 // create Guzzle client as you normally do
 
 $client = new Client('https://api.careerbuilder.com');
-
 
 // register the OAuth2Plugin
 
@@ -22,8 +22,7 @@ $config = array(
     'client_secret' => '',
     'shared_secret' => ''
 )
-$client->addSubscriber(new OAuth2Plugin(new TokenFactory($config)));
-
+$client->addSubscriber(new OAuth2Plugin(new TokenFactory($config), new NullTokenStorage()));
 
 // do whatever you normally do with Guzzle
 

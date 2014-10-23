@@ -19,11 +19,17 @@ class OAuth2Plugin implements EventSubscriberInterface
     private $tokenFactory;
 
     /**
+     * @var TokenStorageInterface
+     */
+    private $tokenStorage;
+
+    /**
      * @param TokenFactory $tokenFactory
      */
-    public function __construct(TokenFactory $tokenFactory)
+    public function __construct(TokenFactory $tokenFactory, TokenStorageInterface $tokenStorage)
     {
         $this->tokenFactory = $tokenFactory;
+        $this->tokenStorage = $tokenStorage;
     }
 
     public static function getSubscribedEvents()
@@ -37,10 +43,11 @@ class OAuth2Plugin implements EventSubscriberInterface
     public function onBeforeSend(Event $event)
     {
         if (!$this->token) {
-            $this->token = $this->tokenFactory->getToken();
+            $this->token = $this->tokenStorage->fetch();
         }
-        if ($this->token->isExpired()) {
+        if (!$this->token || $this->token->isExpired()) {
             $this->token = $this->tokenFactory->getToken();
+            $this->tokenStorage->store($this->token);
         }
         $request = $event['request'];
         $request->setHeader('Authorization', sprintf('Bearer %s', $this->token));

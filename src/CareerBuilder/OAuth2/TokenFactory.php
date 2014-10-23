@@ -54,7 +54,7 @@ class TokenFactory
             $body['refresh_token'] = $token->getRefreshToken();
         } else {
             $body['client_assertion_type'] = 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer';
-            $body['client_assertion'] = $this->getJWT();
+            $body['client_assertion'] = $this->getJWT($this->getClientCredentialsClaim());
             $body['grant_type'] = 'client_credentials';
             if ($this->scope) {
                 $body['scope'] = $this->scope;
@@ -67,13 +67,18 @@ class TokenFactory
         return new AccessToken($data['access_token'], '', $data['expires_in']);
     }
 
-    private function getJWT()
+    private function getClientCredentialsClaim()
     {
-        return JWT::encode(array(
+        return array(
             'iss' => $this->clientId,
             'sub' => $this->clientId,
             'aud' => 'http://www.careerbuilder.com/share/oauth2/token.aspx',
             'exp' => time() + 30
-        ), $this->sharedSecret);
+        );
+    }
+
+    private function getJWT($claim)
+    {
+        return JWT::encode($claim, $this->sharedSecret);
     }
 }

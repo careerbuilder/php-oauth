@@ -25,6 +25,11 @@ class AccessToken
         return time() > $this->expiresAt;
     }
 
+    public function getExpiresAt()
+    {
+        return $this->expiresAt;
+    }
+
     public function __toString()
     {
         return $this->token;

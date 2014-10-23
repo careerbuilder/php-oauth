@@ -4,6 +4,7 @@ require('bootstrap.php');
 
 use CareerBuilder\OAuth2\OAuth2Plugin;
 use CareerBuilder\OAuth2\TokenFactory;
+use CareerBuilder\OAuth2\NullTokenStorage;
 use Guzzle\Http\Client;
 use Guzzle\Http\Exception\ServerErrorResponseException;
 use Psr\Log\LoggerInterface;
@@ -31,7 +32,7 @@ $config = array(
 $logger = new Logger();
 
 $client = new Client('https://api.careerbuilder.com');
-$client->addSubscriber(new OAuth2Plugin(new TokenFactory($config, null, $logger)));
+$client->addSubscriber(new OAuth2Plugin(new TokenFactory($config, null, $logger), new NullTokenStorage()));
 $client->addSubscriber(new LogPlugin(new PsrLogAdapter($logger)));
 
 $request = $client->get('/corporate/geography/validate');
