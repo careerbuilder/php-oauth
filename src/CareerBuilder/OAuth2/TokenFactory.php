@@ -4,6 +4,8 @@ namespace CareerBuilder\OAuth2;
 
 use Guzzle\Http\Client;
 use Guzzle\Http\ClientInterface;
+use Guzzle\Plugin\Log\LogPlugin;
+use Guzzle\Log\PsrLogAdapter;
 use JWT;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -23,13 +25,14 @@ class TokenFactory
      */
     public function __construct($config, ClientInterface $client = null, LoggerInterface $logger = null)
     {
+        $this->logger = $logger ?: new NullLogger();
         $this->client = $client ?: new Client();
         $this->client->setBaseUrl($config['base_url']);
+        $this->client->addSubscriber(new LogPlugin(new PsrLogAdapter($this->logger)));
         $this->clientId = $config['client_id'];
         $this->clientSecret = $config['client_secret'];
         $this->sharedSecret = $config['shared_secret'];
         $this->scope = isset($config['scope']) ? $config['scope'] : null;
-        $this->logger = $logger ?: new NullLogger();
     }
 
     /**
