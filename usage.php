@@ -30,7 +30,7 @@ $config = array(
 );
 $logger = new Logger();
 
-$client = new Client('https://wwwtest.api.careerbuilder.com');
+$client = new Client('https://api.careerbuilder.com');
 $client->addSubscriber(new OAuth2Plugin(new TokenFactory($config, null, $logger)));
 $client->addSubscriber(new LogPlugin(new PsrLogAdapter($logger)));
 
