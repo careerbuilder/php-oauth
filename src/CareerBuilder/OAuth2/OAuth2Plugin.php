@@ -2,6 +2,7 @@
 
 namespace CareerBuilder\OAuth2;
 
+use CareerBuilder\OAuth2\Flows\Flow;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Guzzle\Common\Event;
 use Psr\Log\LoggerInterface;
@@ -14,9 +15,9 @@ class OAuth2Plugin implements EventSubscriberInterface
     private $token;
 
     /**
-     * @var TokenFactory
+     * @var Flow
      */
-    private $tokenFactory;
+    private $flow;
 
     /**
      * @var TokenStorageInterface
@@ -24,11 +25,11 @@ class OAuth2Plugin implements EventSubscriberInterface
     private $tokenStorage;
 
     /**
-     * @param TokenFactory $tokenFactory
+     * @param Flow $flow
      */
-    public function __construct(TokenFactory $tokenFactory, TokenStorageInterface $tokenStorage)
+    public function __construct(Flow $flow, TokenStorageInterface $tokenStorage)
     {
-        $this->tokenFactory = $tokenFactory;
+        $this->flow = $flow;
         $this->tokenStorage = $tokenStorage;
     }
 
@@ -46,7 +47,7 @@ class OAuth2Plugin implements EventSubscriberInterface
             $this->token = $this->tokenStorage->fetch();
         }
         if (!$this->token || $this->token->isExpired()) {
-            $this->token = $this->tokenFactory->getToken();
+            $this->token = $this->flow->getToken();
             $this->tokenStorage->store($this->token);
         }
         $request = $event['request'];
