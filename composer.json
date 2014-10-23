@@ -1,0 +1,18 @@
+{
+    "name": "cbdr/php-oauth",
+    "description": "CareerBuilder OAuth2 Guzzle Plugin",
+    "license": "proprietary",
+    "require": {
+        "guzzle/guzzle": "~3.9",
+        "psr/log": "~1.0",
+        "firebase/php-jwt": "~1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~3.7"
+    },
+    "autoload": {
+        "psr-0": {
+            "CareerBuilder\\": "src/"
+        }
+    }
+}
