@@ -34,12 +34,9 @@ $client = new Client('https://api.careerbuilder.com');
 $client->addSubscriber(new OAuth2Plugin(new TokenFactory($config, null, $logger)));
 $client->addSubscriber(new LogPlugin(new PsrLogAdapter($logger)));
 
-$request = $client->get('/corporate/geography/validate', array(
-    'query' => array(
-        'query' => 'Atlanta'
-    )
-));
+$request = $client->get('/corporate/geography/validate');
+$request->getQuery()->set('query', 'Atlanta');
 
 $response = $request->send();
 $data = $response->json();
-echo $data;
+print_r($data);
