@@ -73,7 +73,7 @@ class TokenFactory
             'iss' => $this->clientId,
             'sub' => $this->clientId,
             'aud' => 'http://www.careerbuilder.com/share/oauth2/token.aspx',
-            'exp' => time() + (30 * 60)
+            'exp' => time() + 30
         ), $this->sharedSecret);
     }
 }

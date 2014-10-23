@@ -6,13 +6,13 @@ class AccessToken
 {
     private $token;
     private $refreshToken;
-    private $expiresIn;
+    private $expiresAt;
 
     public function __construct($token, $refreshToken, $expiresIn)
     {
         $this->token = $token;
         $this->refreshToken = $refreshToken;
-        $this->expiresIn = $expiresIn;
+        $this->expiresAt = time() + $expiresIn;
     }
 
     public function getRefreshToken()
@@ -22,7 +22,7 @@ class AccessToken
 
     public function isExpired()
     {
-        return time() > $this->expiresIn;
+        return time() > $this->expiresAt;
     }
 
     public function __toString()

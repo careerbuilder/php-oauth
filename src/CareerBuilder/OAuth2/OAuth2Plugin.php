@@ -49,6 +49,5 @@ class OAuth2Plugin implements EventSubscriberInterface
     public function onComplete(Event $event)
     {
         $response = $event['response'];
-        echo (string)$response->getBody();
     }
 }
