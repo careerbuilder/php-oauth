@@ -3,8 +3,8 @@
 require('bootstrap.php');
 
 use CareerBuilder\OAuth2\OAuth2Plugin;
-use CareerBuilder\OAuth2\TokenFactory;
 use CareerBuilder\OAuth2\NullTokenStorage;
+use CareerBuilder\OAuth2\Flows\ClientCredentials;
 use Guzzle\Http\Client;
 use Guzzle\Http\Exception\ServerErrorResponseException;
 use Psr\Log\LoggerInterface;
@@ -23,20 +23,21 @@ class Logger extends AbstractLogger
     }
 }
 
-$config = array(
-    'base_url' => 'https://www.careerbuilder.com',
+$configs = array(
     'client_id' => '',
     'client_secret' => '',
-    'shared_secret' => ''
+    'shared_secret' => '',
+    'base_url' => 'https://wwwtest.careerbuilder.com'
 );
+
 $logger = new Logger();
 
-$client = new Client('https://api.careerbuilder.com');
-$client->addSubscriber(new OAuth2Plugin(new TokenFactory($config, null, $logger), new NullTokenStorage()));
+$client = new Client('https://wwwtest.api.careerbuilder.com');
+$client->addSubscriber(new OAuth2Plugin(new ClientCredentials($configs, null, $logger), new NullTokenStorage()));
 $client->addSubscriber(new LogPlugin(new PsrLogAdapter($logger)));
 
-$request = $client->get('/corporate/geography/validate');
-$request->getQuery()->set('query', 'Atlanta');
+$request = $client->get('/core/framework/user/forgotten');
+$request->getQuery()->set('emailaddress', 'test');
 
 $response = $request->send();
 $data = $response->json();
