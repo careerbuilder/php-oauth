@@ -18,10 +18,10 @@ $client = new Client('https://api.careerbuilder.com');
 // register the OAuth2Plugin
 
 $configs = array(
-    'client_id' => '9c8e37f7',
+    'client_id' => 'yourclientid',
     'client_secret' => 'shhh',
-    'shared_secret' => 'wBXuP4ohmPTlI5/x088ZlStg/Q1O/9Nmz3IAPYtUlTPUW0sHj0e4cYNrvccIdBghVgSxkWus1F5X6YykBC48cg==',
-    'base_url' => 'https://wwwtest.careerbuilder.com'
+    'shared_secret' => 'supersecret',
+    'base_url' => 'https://www.careerbuilder.com'
 );
 
 $client->addSubscriber(new OAuth2Plugin(new ClientCredentials($configs), new NullTokenStorage()));
