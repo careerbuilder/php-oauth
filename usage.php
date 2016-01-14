@@ -27,7 +27,7 @@ $configs = array(
     'client_id' => '',
     'client_secret' => '',
     'shared_secret' => '',
-    'base_url' => 'https://wwwtest.careerbuilder.com'
+    'base_url' => 'https://wwwtest.api.careerbuilder.com'
 );
 
 $logger = new Logger();
