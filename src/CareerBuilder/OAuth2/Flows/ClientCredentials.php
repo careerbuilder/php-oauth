@@ -41,7 +41,7 @@ class ClientCredentials extends Flow
         return array(
             'iss' => $this->clientId,
             'sub' => $this->clientId,
-            'aud' => 'http://www.careerbuilder.com/share/oauth2/token.aspx',
+            'aud' => 'https://api.careerbuilder.com/oauth/token',
             'exp' => time() + 180
         );
     }

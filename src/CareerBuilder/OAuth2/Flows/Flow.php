@@ -100,7 +100,7 @@ abstract class Flow
             $this->buildBody();
         }
 
-        $request = $this->client->post('/share/oauth2/token.aspx', $this->headers, $this->body);
+        $request = $this->client->post('/oauth/token', $this->headers, $this->body);
         $response = $request->send();
         $data = $response->json();
 
