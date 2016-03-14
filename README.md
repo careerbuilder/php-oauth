@@ -28,8 +28,7 @@ $client->addSubscriber(new OAuth2Plugin(new ClientCredentials($configs), new Nul
 
 // do whatever you normally do with Guzzle
 
-$request = $client->get('/corporate/geography/validate');
-$request->getQuery()->set('query', 'Atlanta');
+$request = $client->get('/some/api/route');
 $response = $request->send();
 ```
 

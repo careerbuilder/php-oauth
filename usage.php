@@ -1,4 +1,5 @@
 <?php
+//Copyright 2016 CareerBuilder, LLC
 
 require('bootstrap.php');
 
@@ -27,18 +28,16 @@ $configs = array(
     'client_id' => '',
     'client_secret' => '',
     'shared_secret' => '',
-    'base_url' => 'https://wwwtest.api.careerbuilder.com'
+    'base_url' => 'https://api.careerbuilder.com'
 );
 
 $logger = new Logger();
 
-$client = new Client('https://wwwtest.api.careerbuilder.com');
+$client = new Client('https://api.careerbuilder.com');
 $client->addSubscriber(new OAuth2Plugin(new ClientCredentials($configs, null, $logger), new NullTokenStorage()));
 $client->addSubscriber(new LogPlugin(new PsrLogAdapter($logger)));
 
-$request = $client->get('/core/framework/user/forgotten');
-$request->getQuery()->set('emailaddress', 'test');
-
+$request = $client->get('/some/api/route');
 $response = $request->send();
 $data = $response->json();
 print_r($data);

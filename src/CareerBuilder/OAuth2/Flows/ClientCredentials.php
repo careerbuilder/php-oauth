@@ -1,4 +1,5 @@
 <?php
+//Copyright 2016 CareerBuilder, LLC
 
 namespace CareerBuilder\OAuth2\Flows;
 
