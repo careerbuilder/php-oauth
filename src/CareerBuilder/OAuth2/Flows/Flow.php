@@ -42,6 +42,8 @@ abstract class Flow
     protected $headers;
     /** @var array */
     protected $body;
+    /** @var string */
+    private $tokenRequestPath;
 
     /**
      * @param array $configs
@@ -50,11 +52,11 @@ abstract class Flow
      */
     protected function __construct(array $configs, ClientInterface $client = null, LoggerInterface $logger = null)
     {
+        $configs = array_merge($this->getDefaultConfig(), $configs);
         $this->setCredentials($configs);
         $this->setDefaults();
         
-
-        if (isset($configs['auth_in_header']) && $configs['auth_in_header']) {
+        if ($configs['auth_in_header']) {
             $this->headers['Authorization'] = $this->getAuthHeader();
         }
 
@@ -62,6 +64,22 @@ abstract class Flow
         $this->client = $client ?: new Client();
         $this->client->setBaseUrl($configs['base_url']);
         $this->client->addSubscriber(new LogPlugin(new PsrLogAdapter($this->logger)));
+        $this->tokenRequestPath = $configs['token_request_path'];
+    }
+
+    /**
+     * @return array
+     */
+    private function getDefaultConfig()
+    {
+        return array(
+            'client_id' => '',
+            'client_secret' => '',
+            'shared_secret' => '',
+            'base_url' => 'https://api.careerbuilder.com',
+            'token_request_path' => '/oauth/token',
+            'auth_in_header' => false
+        );
     }
 
     /**
@@ -110,7 +128,7 @@ abstract class Flow
             $this->buildBody();
         }
 
-        $request = $this->client->post('/oauth/token', $this->headers, $this->body);
+        $request = $this->client->post($this->tokenRequestPath, $this->headers, $this->body);
         $response = $request->send();
         $data = $response->json();
 
