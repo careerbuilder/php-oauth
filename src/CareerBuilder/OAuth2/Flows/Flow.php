@@ -17,7 +17,7 @@ use Guzzle\Http\ClientInterface;
 use Guzzle\Http\Client;
 use Guzzle\Plugin\Log\LogPlugin;
 use Guzzle\Log\PsrLogAdapter;
-use JWT;
+use Firebase\JWT\JWT;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
