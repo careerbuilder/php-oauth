@@ -56,7 +56,7 @@ class JWTBearerAssertion extends Flow
         return array(
             'iss' => $this->clientId,
             'sub' => "{$this->email}:{$this->accountId}",
-            'aud' => 'www.careerbuilder.com/share/oauth2'
+            'aud' => 'www.careerbuilder.com/share/oauth2',
             'exp' => time() + 30
         );
     }

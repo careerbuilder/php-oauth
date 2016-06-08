@@ -132,9 +132,9 @@ abstract class Flow
         $response = $request->send();
         $data = $response->json();
 
-        $refreshToken = isset($data['refresh_token']) ?: '';
+        $refreshToken = isset($data['data']['refresh_token']) ?: '';
 
-        return new AccessToken($data['access_token'], $refreshToken, $data['expires_in']);
+        return new AccessToken($data['data']['access_token'], $refreshToken, $data['data']['expires_in']);
     }
 
     protected abstract function buildBody();
