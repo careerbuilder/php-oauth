@@ -13,29 +13,24 @@
 namespace CareerBuilder\OAuth2;
 
 use CareerBuilder\OAuth2\Flows\Flow;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Guzzle\Common\Event;
-use Psr\Log\LoggerInterface;
+use Psr\Http\Message\RequestInterface;
 
-class OAuth2Plugin implements EventSubscriberInterface
+class OAuth2Plugin
 {
-    /**
-     * @var AccessToken
-     */
+    /** @var AccessToken */
     private $token;
 
-    /**
-     * @var Flow
-     */
+    /** @var Flow */
     private $flow;
 
-    /**
-     * @var TokenStorageInterface
-     */
+    /** @var TokenStorageInterface */
     private $tokenStorage;
 
     /**
+     * OAuth2Plugin constructor.
+     *
      * @param Flow $flow
+     * @param TokenStorageInterface $tokenStorage
      */
     public function __construct(Flow $flow, TokenStorageInterface $tokenStorage)
     {
@@ -43,29 +38,33 @@ class OAuth2Plugin implements EventSubscriberInterface
         $this->tokenStorage = $tokenStorage;
     }
 
-    public static function getSubscribedEvents()
+    /**
+     * @param callable $next
+     * @return \Closure
+     */
+    public function __invoke(callable $next)
     {
-        return array(
-            'request.before_send' => 'onBeforeSend',
-            'request.complete' => 'onComplete'
-        );
+        return function (RequestInterface $request, array $options) use ($next) {
+            return $next($this->onBefore($request), $options);
+        };
     }
 
-    public function onBeforeSend(Event $event)
+    /**
+     * @param RequestInterface $request
+     * @return RequestInterface
+     * @throws \Exception
+     */
+    public function onBefore(RequestInterface $request)
     {
         if (!$this->token) {
             $this->token = $this->tokenStorage->fetch();
         }
+
         if (!$this->token || $this->token->isExpired()) {
             $this->token = $this->flow->getToken();
             $this->tokenStorage->store($this->token);
         }
-        $request = $event['request'];
-        $request->setHeader('Authorization', sprintf('Bearer %s', $this->token));
-    }
 
-    public function onComplete(Event $event)
-    {
-        $response = $event['response'];
+        return $request->withAddedHeader('Authorization', sprintf('Bearer %s', $this->token));
     }
 }

@@ -1,0 +1,58 @@
+base: &base
+    working_directory: ~/php-oauth
+    docker:
+        - image: circleci/php:7.3-cli
+
+remote-docker: &remote_docker
+    setup_remote_docker:
+        version: 18.05.0-ce
+
+docker-info: &docker_info
+    run: docker info
+
+version: 2
+jobs:
+    build-php70:
+        <<: *base
+        steps:
+            - checkout
+            - *remote_docker
+            - *docker_info
+            - run: docker build --build-arg PHP_VRERSION=7.0 -t tests-php70 .
+            - run: docker run tests-php70
+
+    build-php71:
+        <<: *base
+        steps:
+            - checkout
+            - *remote_docker
+            - *docker_info
+            -   run: docker build --build-arg PHP_VRERSION=7.1 -t tests-php71 .
+            -   run: docker run tests-php71
+
+    build-php72:
+        <<: *base
+        steps:
+            - checkout
+            - *remote_docker
+            - *docker_info
+            -   run: docker build --build-arg PHP_VRERSION=7.2 -t tests-php72 .
+            -   run: docker run tests-php72
+
+    build-php73:
+        <<: *base
+        steps:
+            - checkout
+            - *remote_docker
+            - *docker_info
+            -   run: docker build --build-arg PHP_VRERSION=7.3 -t tests-php73 .
+            -   run: docker run tests-php73
+
+workflows:
+    version: 2
+    all:
+        jobs:
+            - build-php70
+            - build-php71
+            - build-php72
+            - build-php73

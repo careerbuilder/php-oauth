@@ -13,46 +13,62 @@
 namespace CareerBuilder\OAuth2;
 
 use CareerBuilder\OAuth2\Flows\ClientCredentials;
-use Guzzle\Http\Client;
-use Guzzle\Http\Message\Response;
-use Guzzle\Plugin\Mock\MockPlugin;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 
 class OAuth2PluginTest extends TestCase
 {
     public function testTokenOnRequest()
     {
-        $flowMockPlugin = new MockPlugin();
-        $flowMockPlugin->addResponse(new Response(200, array(), json_encode(array(
-            'data' => array(
-                'access_token' => 'accesstokenhere',
-                'expires_in' => 1,
-                'refresh_token' => 'refresh'
-            )
-        ))));
+        $handler = new MockHandler([
+            new Response(200, [], json_encode(['data' => 'data']))
+        ]);
 
-        $flowClient = new Client();
-        $flowClient->addSubscriber($flowMockPlugin);
+        $stack = new HandlerStack($handler);
+        $stack->push(new OAuth2Plugin(
+            $this->getClientCredentials(),
+            new NullTokenStorage()
+        ));
 
-        $flow = new ClientCredentials(array(
+        $client = new Client([
+            'base_uri' => 'https://api.careerbuilder.com',
+            'handler' => $stack
+        ]);
+
+        $response = $client->get('https://api.careerbuilder.com');
+        $response = json_decode($response->getBody()->getContents(), true);
+
+        $request = $handler->getLastRequest();
+
+        $this->assertEquals('Bearer accesstokenhere', $request->getHeader('Authorization')[0]);
+        $this->assertEquals('data', $response['data']);
+    }
+
+    /**
+     * @return ClientCredentials
+     */
+    private function getClientCredentials()
+    {
+        $handler = new MockHandler([
+            new Response(200, [], json_encode([
+                'data' => [
+                    'access_token' => 'accesstokenhere',
+                    'expires_in' => 1,
+                    'refresh_token' => 'refresh'
+                ]
+            ]))
+        ]);
+
+        return new ClientCredentials([
             'client_id' => 'clientid',
             'client_secret' => 'clientsecret',
             'shared_secret' => 'sharedsecret'
-        ), $flowClient);
-
-        $oauthPlugin = new OAuth2Plugin($flow, new NullTokenStorage());
-
-        $mockPlugin = new MockPlugin();
-        $mockPlugin->addResponse(new Response(200, array(), json_encode(array('data' => 'data'))));
-
-        $client = new Client();
-        $client->addSubscriber($oauthPlugin);
-        $client->addSubscriber($mockPlugin);
-
-        $request = $client->get('https://api.careerbuilder.com');
-        $response = $request->send();
-
-        $this->assertEquals('Bearer accesstokenhere', (string)$request->getHeader('Authorization'));
-        $this->assertEquals('data', $response->json()['data']);
+        ], new Client([
+            'base_uri' => 'https://api.careerbuilder.com',
+            'handler' => new HandlerStack($handler)
+        ]));
     }
 }

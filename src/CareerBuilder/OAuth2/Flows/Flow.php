@@ -13,13 +13,9 @@
 namespace CareerBuilder\OAuth2\Flows;
 
 use CareerBuilder\OAuth2\AccessToken;
-use Guzzle\Http\ClientInterface;
-use Guzzle\Http\Client;
-use Guzzle\Plugin\Log\LogPlugin;
-use Guzzle\Log\PsrLogAdapter;
+use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Psr7\Response;
 use Firebase\JWT\JWT;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 /**
  * Base class for all oAuth 2 flows.
@@ -28,42 +24,44 @@ use Psr\Log\NullLogger;
  */
 abstract class Flow
 {
+    const BASE_URI = 'https://api.careerbuilder.com';
+
     /** @var ClientInterface */
     protected $client;
-    /** @var LoggerInterface */
-    protected $logger;
+
     /** @var string */
     protected $clientId;
+
     /** @var string */
     protected $clientSecret;
+
     /** @var string */
     protected $sharedSecret;
+
     /** @var array */
     protected $headers;
+
     /** @var array */
     protected $body;
+
     /** @var string */
     private $tokenRequestPath;
 
     /**
      * @param array $configs
      * @param ClientInterface $client
-     * @param LoggerInterface $logger
      */
-    protected function __construct(array $configs, ClientInterface $client = null, LoggerInterface $logger = null)
+    public function __construct(array $configs, ClientInterface $client)
     {
         $configs = array_merge($this->getDefaultConfig(), $configs);
         $this->setCredentials($configs);
         $this->setDefaults();
-        
+
         if ($configs['auth_in_header']) {
             $this->headers['Authorization'] = $this->getAuthHeader();
         }
 
-        $this->logger = $logger ?: new NullLogger();
-        $this->client = $client ?: new Client();
-        $this->client->setBaseUrl($configs['base_url']);
-        $this->client->addSubscriber(new LogPlugin(new PsrLogAdapter($this->logger)));
+        $this->client = $client;
         $this->tokenRequestPath = $configs['token_request_path'];
     }
 
@@ -72,14 +70,13 @@ abstract class Flow
      */
     private function getDefaultConfig()
     {
-        return array(
+        return [
             'client_id' => '',
             'client_secret' => '',
             'shared_secret' => '',
-            'base_url' => 'https://api.careerbuilder.com',
             'token_request_path' => '/oauth/token',
             'auth_in_header' => false
-        );
+        ];
     }
 
     /**
@@ -97,11 +94,11 @@ abstract class Flow
      */
     private function setDefaults()
     {
-        $this->headers = array('Content-Type' => 'application/x-www-form-urlencoded');
-        $this->body = array(
+        $this->headers = ['Content-Type' => 'application/x-www-form-urlencoded'];
+        $this->body = [
             'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret
-        );
+        ];
     }
 
     /**
@@ -109,15 +106,16 @@ abstract class Flow
      */
     private function getAuthHeader()
     {
-        $unencodedParams = "{$this->clientId}:{$this->clientSecret}";
-        $encodedParams = base64_encode($unencodedParams);
-
-        return "Basic {$encodedParams}";
+        return sprintf(
+            'Basic %s',
+            base64_encode(sprintf('%s:%s', $this->clientId, $this->clientSecret))
+        );
     }
 
     /**
      * @param AccessToken $token
-     * @return AcccessToken
+     * @return AccessToken
+     * @throws \Exception
      */
     public function getToken(AccessToken $token = null)
     {
@@ -128,22 +126,69 @@ abstract class Flow
             $this->buildBody();
         }
 
-        $request = $this->client->post($this->tokenRequestPath, $this->headers, $this->body);
-        $response = $request->send();
-        $data = $response->json();
+        /** @var Response $response */
+        $response = $this->client->post($this->tokenRequestPath, [
+            'headers' => $this->headers,
+            'form_params' => $this->body
+        ]);
 
-        $refreshToken = isset($data['data']['refresh_token']) ?: '';
+        $data = json_decode($response->getBody()->getContents(), true);
+        $data = $data['data'] ?: [];
+        $refreshToken = isset($data['refresh_token']) ?: '';
 
-        return new AccessToken($data['data']['access_token'], $refreshToken, $data['data']['expires_in']);
+        return new AccessToken($data['access_token'], $refreshToken, $data['expires_in']);
     }
 
     protected abstract function buildBody();
 
     /**
      * Encode the claims into a JWT and sign using the HS512 algorithm
+     *
+     * @param $claims
+     * @return string
      */
     protected function getJWT($claims)
     {
         return JWT::encode($claims, $this->sharedSecret, 'HS512');
     }
+}
+
+/**
+ * Throws an exception upon JSON decode for PHP < 7.3
+ *
+ * @param $json
+ * @param bool $assoc
+ * @param int $depth
+ * @param int $options
+ * @return mixed
+ * @throws \Exception
+ * @deprecated Remove when upgrading to PHP 7.3
+ */
+function json_decode ($json, $assoc = false, $depth = 512, $options = 0) {
+    $data = \json_decode($json, $assoc, $depth, $options);
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        switch (json_last_error()) {
+            case JSON_ERROR_DEPTH:
+                $errorString = 'JSON_ERROR_DEPTH - The maximum stack depth has been exceeded';
+                break;
+            case JSON_ERROR_STATE_MISMATCH:
+                $errorString =  'JSON_ERROR_STATE_MISMATCH - Invalid or malformed JSON';
+                break;
+            case JSON_ERROR_CTRL_CHAR:
+                $errorString =  'JSON_ERROR_CTRL_CHAR - Control character error, possibly incorrectly encoded';
+                break;
+            case JSON_ERROR_SYNTAX:
+                $errorString =  'JSON_ERROR_SYNTAX - Syntax error';
+                break;
+            case JSON_ERROR_UTF8:
+                $errorString =  'JSON_ERROR_UTF8 - Malformed UTF-8 characters, possibly incorrectly encoded';
+                break;
+            default:
+                $errorString =  json_last_error() . ' - Unknown/unlisted error';
+        }
+        throw new \Exception('JSON Error: ' . $errorString);
+    }
+
+    return $data;
 }

@@ -12,8 +12,7 @@
 
 namespace CareerBuilder\OAuth2\Flows;
 
-use Guzzle\Http\ClientInterface;
-use Psr\Log\LoggerInterface;
+use GuzzleHttp\ClientInterface;
 
 /**
  * JWT-Bearer Assertion Flow
@@ -24,17 +23,17 @@ class JWTBearerAssertion extends Flow
 {
     /** @var string */
     private $email;
+
     /** @var string */
     private $accountId;
 
     /**
      * @param array $configs
      * @param ClientInterface $client
-     * @param LoggerInterface $logger
      */
-    public function __construct(array $configs, ClientInterface $client = null, LoggerInterface $logger = null)
+    public function __construct(array $configs, ClientInterface $client)
     {
-        parent::__construct($configs, $client, $logger);
+        parent::__construct($configs, $client);
         $this->email = $configs['email'];
         $this->accountId = $configs['account_id'];
     }
@@ -50,14 +49,15 @@ class JWTBearerAssertion extends Flow
 
     /**
      * Get the clains for the flow
+     * @return array
      */
     private function getJWTBearerClaims()
     {
-        return array(
+        return [
             'iss' => $this->clientId,
-            'sub' => "{$this->email}:{$this->accountId}",
+            'sub' => sprintf('%s:%s', $this->email, $this->accountId),
             'aud' => 'www.careerbuilder.com/share/oauth2',
             'exp' => time() + 30
-        );
+        ];
     }
 }

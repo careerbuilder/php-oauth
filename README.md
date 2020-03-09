@@ -1,35 +1,9 @@
-php-oauth
-=========
+# php-oauth [![CircleCI](https://circleci.com/gh/careerbuilder/php-oauth.svg?style=svg)](https://circleci.com/gh/careerbuilder/php-oauth)
 
-This is a PHP Guzzle3 plugin for dealing with CB OAuth2.
+This is a PHP Guzzle plugin for dealing with CareerBuilder OAuth2.
 
-## Example Usage
+The `master` branch supports Guzzle 6 and PHP >= 7.0 while the branch `guzzle-3` branch is the older Guzzle 3 plugin.
 
-```php
-use CareerBuilder\OAuth2\OAuth2Plugin;
-use CareerBuilder\OAuth2\TokenFactory;
-use CareerBuilder\OAuth2\NullTokenStorage;
-use CareerBuilder\OAuth2\Flows\ClientCredentials;
-
-// create Guzzle client as you normally do
-
-$client = new Client('https://api.careerbuilder.com');
-
-// register the OAuth2Plugin
-
-$configs = array(
-    'client_id' => 'yourclientid',
-    'client_secret' => 'shhh',
-    'shared_secret' => 'supersecret',
-    'base_url' => 'https://www.careerbuilder.com'
-);
-
-$client->addSubscriber(new OAuth2Plugin(new ClientCredentials($configs), new NullTokenStorage()));
-
-// do whatever you normally do with Guzzle
-
-$request = $client->get('/some/api/route');
-$response = $request->send();
-```
+## Example
 
 See more in [usage.php](usage.php).
