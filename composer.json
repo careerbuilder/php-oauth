@@ -1,5 +1,5 @@
 {
-    "name": "cbdr/php-oauth",
+    "name": "careerbuilder/php-oauth",
     "description": "CareerBuilder OAuth2 Guzzle Plugin",
     "license": "proprietary",
     "require": {
