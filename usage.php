@@ -10,43 +10,37 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and limitations under the License
 
-require('bootstrap.php');
+require_once('vendor/autoload.php');
 
+use CareerBuilder\OAuth2\Flows\Flow;
 use CareerBuilder\OAuth2\OAuth2Plugin;
 use CareerBuilder\OAuth2\NullTokenStorage;
 use CareerBuilder\OAuth2\Flows\ClientCredentials;
-use Guzzle\Http\Client;
-use Guzzle\Http\Exception\ServerErrorResponseException;
-use Psr\Log\LoggerInterface;
-use Psr\Log\AbstractLogger;
-use Guzzle\Plugin\Log\LogPlugin;
-use Guzzle\Log\PsrLogAdapter;
+use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\MessageFormatter;
+use GuzzleHttp\Middleware;
+use Psr\Log\Test\TestLogger;
 
-class Logger extends AbstractLogger
-{
-    public function log($logLevel, $message, array $context = array())
-    {
-        print_r(array(
-            'level' => $logLevel,
-            'message' => $message
-        ));
-    }
-}
+$credClient = new ClientCredentials([
+    'client_id' => 'yourclientid',
+    'client_secret' => 'shhh',
+    'shared_secret' => 'supersecret',
+], new Client(['base_uri' => 'https://www.careerbuilder.com']));
 
-$configs = array(
-    'client_id' => '',
-    'client_secret' => '',
-    'shared_secret' => '',
-    'base_url' => 'https://api.careerbuilder.com'
+
+$stack = HandlerStack::create();
+$stack->push(new OAuth2Plugin($credClient, new NullTokenStorage()));
+$stack->push(
+    Middleware::log(new TestLogger(), new MessageFormatter('{req_body} - {res_body}')),
+    'OAuth2ClientLogger'
 );
 
-$logger = new Logger();
+// Create Guzzle client as you normally do
+$client = new Client([
+    'base_uri' => Flow::BASE_URI,
+    'handler' => $stack
+]);
 
-$client = new Client('https://api.careerbuilder.com');
-$client->addSubscriber(new OAuth2Plugin(new ClientCredentials($configs, null, $logger), new NullTokenStorage()));
-$client->addSubscriber(new LogPlugin(new PsrLogAdapter($logger)));
-
-$request = $client->get('/some/api/route');
-$response = $request->send();
-$data = $response->json();
-print_r($data);
+$response = $client->get('some/api/route');
+var_dump($response->getBody()->getContents());

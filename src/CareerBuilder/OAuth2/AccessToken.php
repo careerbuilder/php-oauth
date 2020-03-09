@@ -14,10 +14,22 @@ namespace CareerBuilder\OAuth2;
 
 class AccessToken
 {
+    /** @var string */
     private $token;
+
+    /** @var string */
     private $refreshToken;
+
+    /** @var int */
     private $expiresAt;
 
+    /**
+     * AccessToken constructor.
+     *
+     * @param string $token
+     * @param string $refreshToken
+     * @param int $expiresIn
+     */
     public function __construct($token, $refreshToken, $expiresIn)
     {
         $this->token = $token;
@@ -25,21 +37,33 @@ class AccessToken
         $this->expiresAt = time() + $expiresIn;
     }
 
+    /**
+     * @return string
+     */
     public function getRefreshToken()
     {
         return $this->refreshToken;
     }
 
+    /**
+     * @return bool
+     */
     public function isExpired()
     {
         return time() > $this->expiresAt;
     }
 
+    /**
+     * @return int
+     */
     public function getExpiresAt()
     {
         return $this->expiresAt;
     }
 
+    /**
+     * @return string
+     */
     public function __toString()
     {
         return $this->token;

@@ -14,37 +14,47 @@ namespace CareerBuilder\OAuth2\Flows;
 
 use CareerBuilder\OAuth2\AccessToken;
 use Firebase\JWT\JWT;
-use Guzzle\Http\Client;
-use Guzzle\Http\Message\Response;
-use Guzzle\Plugin\Mock\MockPlugin;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 
 class ClientCredentialsTest extends TestCase
 {
     public function testGetToken()
     {
-        $mockPlugin = new MockPlugin();
-        $mockPlugin->addResponse(new Response(200, array(), json_encode(array(
-            'data' => array(
-                'access_token' => 'hi',
-                'expires_in' => 1,
-                'refresh_token' => 'refresh'
-            )
-        ))));
+        $mock = new MockHandler([
+            new Response(200, [], json_encode([
+                'data' => [
+                    'access_token' => 'hi',
+                    'expires_in' => 1,
+                    'refresh_token' => 'refresh'
+                ]
+            ]))
+        ]);
 
-        $client = new Client();
-        $client->addSubscriber($mockPlugin);
+        $client = new Client([
+            'base_uri' => 'https://api.careerbuilder.com',
+            'handler' => $mock
+        ]);
 
-        $flow = new ClientCredentials(array(
+        $flow = new ClientCredentials([
             'client_id' => 'clientid',
             'client_secret' => 'clientsecret',
             'shared_secret' => 'sharedsecret'
-        ), $client);
+        ], $client);
 
         $token = $flow->getToken();
-        $request = $mockPlugin->getReceivedRequests()[0];
-        $postFields = $request->getPostFields();
-        $jwt = JWT::decode($postFields['client_assertion'], 'sharedsecret', array('HS512'));
+
+        $request = $mock->getLastRequest();
+        $body = $request->getBody()->getContents();
+
+        $this->assertNotEmpty($body);
+
+        $postFields = [];
+        parse_str($body, $postFields);
+
+        $jwt = JWT::decode($postFields['client_assertion'], 'sharedsecret', ['HS512']);
 
         $this->assertEquals('POST', $request->getMethod());
         $this->assertEquals('clientid', $postFields['client_id']);
@@ -55,37 +65,44 @@ class ClientCredentialsTest extends TestCase
         $this->assertEquals('clientid', $jwt->sub);
         $this->assertEquals('https://api.careerbuilder.com/oauth/token', $jwt->aud);
         $this->assertEquals(time() + 180, $jwt->exp);
-        $this->assertEquals('hi', "$token");
+        $this->assertEquals('hi', (string) $token);
         $this->assertEquals(true, $token->getRefreshToken()); // TODO
         $this->assertEquals(time() + 1, $token->getExpiresAt());
     }
 
     public function testGetTokenWithRefresh()
     {
-        $mockPlugin = new MockPlugin();
-        $mockPlugin->addResponse(new Response(200, array(), json_encode(array(
-            'data' => array(
-                'access_token' => 'hi',
-                'expires_in' => 1,
-                'refresh_token' => 'refresh'
-            )
-        ))));
+        $mock = new MockHandler([
+            new Response(200, [], json_encode([
+                'data' => [
+                    'access_token' => 'hi',
+                    'expires_in' => 1,
+                    'refresh_token' => 'refresh'
+                ]
+            ]))
+        ]);
 
-        $client = new Client();
-        $client->addSubscriber($mockPlugin);
+        $client = new Client([
+            'base_uri' => 'https://api.careerbuilder.com',
+            'handler' => $mock
+        ]);
 
-        $flow = new ClientCredentials(array(
+        $flow = new ClientCredentials([
             'client_id' => 'clientid',
             'client_secret' => 'clientsecret',
             'shared_secret' => 'sharedsecret',
             'auth_in_header' => true
-        ), $client);
+        ], $client);
 
-        $existingToken = new AccessToken('token', 'refresh', 1);
+        $token = $flow->getToken(new AccessToken('token', 'refresh', 1));
 
-        $token = $flow->getToken($existingToken);
-        $request = $mockPlugin->getReceivedRequests()[0];
-        $postFields = $request->getPostFields();
+        $request = $mock->getLastRequest();
+        $body = $request->getBody()->getContents();
+
+        $this->assertNotEmpty($body);
+
+        $postFields = [];
+        parse_str($body, $postFields);
 
         $this->assertEquals('POST', $request->getMethod());
         $this->assertEquals('clientid', $postFields['client_id']);

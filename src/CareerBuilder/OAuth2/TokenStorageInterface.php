@@ -12,11 +12,15 @@
 
 namespace CareerBuilder\OAuth2;
 
-use CareerBuilder\OAuth2\AccessToken;
-
 interface TokenStorageInterface
 {
+    /**
+     * @param AccessToken $token
+     */
     public function store(AccessToken $token);
 
+    /**
+     * @return mixed
+     */
     public function fetch();
 }

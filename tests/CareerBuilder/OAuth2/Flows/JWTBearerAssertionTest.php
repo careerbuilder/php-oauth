@@ -12,41 +12,50 @@
 
 namespace CareerBuilder\OAuth2\Flows;
 
-use CareerBuilder\OAuth2\AccessToken;
 use Firebase\JWT\JWT;
-use Guzzle\Http\Client;
-use Guzzle\Http\Message\Response;
-use Guzzle\Plugin\Mock\MockPlugin;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 
 class JWTBearerAssertionTest extends TestCase
 {
     public function testGetToken()
     {
-        $mockPlugin = new MockPlugin();
-        $mockPlugin->addResponse(new Response(200, array(), json_encode(array(
-            'data' => array(
-                'access_token' => 'hi',
-                'expires_in' => 1,
-                'refresh_token' => 'refresh'
-            )
-        ))));
+        $mock = new MockHandler([
+            new Response(200, [], json_encode([
+                'data' => [
+                    'access_token' => 'hi',
+                    'expires_in' => 1,
+                    'refresh_token' => 'refresh'
+                ]
+            ]))
+        ]);
 
-        $client = new Client();
-        $client->addSubscriber($mockPlugin);
+        $client = new Client([
+            'base_uri' => 'https://api.careerbuilder.com',
+            'handler' => $mock
+        ]);
 
-        $flow = new JWTBearerAssertion(array(
+        $flow = new JWTBearerAssertion([
             'client_id' => 'clientid',
             'client_secret' => 'clientsecret',
             'shared_secret' => 'sharedsecret',
             'email' => 'email@example.com',
             'account_id' => 'accountid'
-        ), $client);
+        ], $client);
 
         $token = $flow->getToken();
-        $request = $mockPlugin->getReceivedRequests()[0];
-        $postFields = $request->getPostFields();
-        $jwt = JWT::decode($postFields['assertion'], 'sharedsecret', array('HS512'));
+
+        $request = $mock->getLastRequest();
+        $body = $request->getBody()->getContents();
+
+        $this->assertNotEmpty($body);
+
+        $postFields = [];
+        parse_str($body, $postFields);
+
+        $jwt = JWT::decode($postFields['assertion'], 'sharedsecret', ['HS512']);
 
         $this->assertEquals('POST', $request->getMethod());
         $this->assertEquals('clientid', $postFields['client_id']);
@@ -56,7 +65,7 @@ class JWTBearerAssertionTest extends TestCase
         $this->assertEquals('email@example.com:accountid', $jwt->sub);
         $this->assertEquals('www.careerbuilder.com/share/oauth2', $jwt->aud);
         $this->assertEquals(time() + 30, $jwt->exp);
-        $this->assertEquals('hi', "$token");
+        $this->assertEquals('hi', (string) $token);
         $this->assertEquals(true, $token->getRefreshToken()); // TODO
         $this->assertEquals(time() + 1, $token->getExpiresAt());
     }

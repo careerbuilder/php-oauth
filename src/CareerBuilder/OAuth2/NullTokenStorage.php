@@ -12,10 +12,11 @@
 
 namespace CareerBuilder\OAuth2;
 
-use CareerBuilder\OAuth2\AccessToken;
-
 class NullTokenStorage implements TokenStorageInterface
 {
+    /**
+     * @param AccessToken $token
+     */
     public function store(AccessToken $token)
     {
     }
