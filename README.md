@@ -2,7 +2,7 @@
 
 This is a PHP Guzzle plugin for dealing with CareerBuilder OAuth2.
 
-The `master` branch supports Guzzle 6 and PHP >= 7.0 while the branch `guzzle-3` branch is the older Guzzle 3 plugin.
+The `master` branch supports Guzzle 6 and PHP >= 7.1 while the branch `guzzle-3` branch is the older Guzzle 3 plugin.
 
 ## Example
 
