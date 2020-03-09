@@ -2,6 +2,8 @@
     "name": "careerbuilder/php-oauth",
     "description": "CareerBuilder OAuth2 Guzzle Plugin",
     "license": "proprietary",
+    "minimum-stability": "stable",
+    "prefer-stable": true,
     "require": {
         "guzzlehttp/guzzle": "~6",
         "psr/log": "~1.0",
