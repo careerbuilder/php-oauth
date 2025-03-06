@@ -1,7 +1,7 @@
 base: &base
     working_directory: ~/php-oauth
     docker:
-        - image: circleci/php:7.4-cli
+        - image: cimg/php:8.4
 
 remote-docker: &remote_docker
     setup_remote_docker
@@ -11,47 +11,47 @@ docker-info: &docker_info
 
 version: 2
 jobs:
-    build-php71:
+    build-php81:
         <<: *base
         steps:
             - checkout
             - *remote_docker
             - *docker_info
-            -   run: docker build --build-arg PHP_VERSION=7.1 -t tests-php71 .
-            -   run: docker run tests-php71
+            -   run: docker build --build-arg PHP_VERSION=8.1 -t tests-php81 .
+            -   run: docker run tests-php81
 
-    build-php72:
+    build-php82:
         <<: *base
         steps:
             - checkout
             - *remote_docker
             - *docker_info
-            -   run: docker build --build-arg PHP_VERSION=7.2 -t tests-php72 .
-            -   run: docker run tests-php72
+            -   run: docker build --build-arg PHP_VERSION=8.2 -t tests-php82 .
+            -   run: docker run tests-php82
 
-    build-php73:
+    build-php83:
         <<: *base
         steps:
             - checkout
             - *remote_docker
             - *docker_info
-            -   run: docker build --build-arg PHP_VERSION=7.3 -t tests-php73 .
-            -   run: docker run tests-php73
+            -   run: docker build --build-arg PHP_VERSION=8.3 -t tests-php83 .
+            -   run: docker run tests-php83
 
-    build-php74:
+    build-php84:
         <<: *base
         steps:
             - checkout
             - *remote_docker
             - *docker_info
-            -   run: docker build --build-arg PHP_VERSION=7.4 -t tests-php74 .
-            -   run: docker run tests-php74
+            -   run: docker build --build-arg PHP_VERSION=8.4 -t tests-php84 .
+            -   run: docker run tests-php84
 
 workflows:
     version: 2
     all:
         jobs:
-            - build-php71
-            - build-php72
-            - build-php73
-            - build-php74
+            - build-php81
+            - build-php82
+            - build-php83
+            - build-php84
