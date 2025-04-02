@@ -1,6 +1,6 @@
 ARG PHP_VERSION
-FROM php:${PHP_VERSION:-7.4}-alpine
-RUN apk add --no-cache git $PHPIZE_DEPS && \
+FROM php:${PHP_VERSION:-8.4}-alpine
+RUN apk add --no-cache linux-headers git $PHPIZE_DEPS && \
     pecl install xdebug && \
     docker-php-ext-enable xdebug && \
     curl -# https://getcomposer.org/installer | php && \

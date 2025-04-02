@@ -13,6 +13,7 @@
 namespace CareerBuilder\OAuth2\Flows;
 
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
@@ -55,7 +56,7 @@ class JWTBearerAssertionTest extends TestCase
         $postFields = [];
         parse_str($body, $postFields);
 
-        $jwt = JWT::decode($postFields['assertion'], 'sharedsecret', ['HS512']);
+        $jwt = JWT::decode($postFields['assertion'], new Key('sharedsecret','HS512'));
 
         $this->assertEquals('POST', $request->getMethod());
         $this->assertEquals('clientid', $postFields['client_id']);
